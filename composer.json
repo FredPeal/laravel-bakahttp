@@ -1,5 +1,5 @@
 {
-    "name": "Fredpeal/laravel-bakahttp",
+    "name": "fredpeal/laravel-bakahttp",
     "type": "library",
     "description": "Inspirated in the package bakaphp/http created by MCTEKK SRL I created this package for Laravel i hope be to help",
     "keywords": ["bakahttp","laravel"],
