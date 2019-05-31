@@ -1,5 +1,5 @@
 {
-    "name": "FredPeal/laravel-bakahttpderickpea",
+    "name": "FredPeal/laravel-bakahttp",
     "type": "library",
     "description": "Inspirated in the package bakaphp/http created by MCTEKK SRL I created this package for Laravel i hope be to help",
     "keywords": ["bakahttp","laravel"],
@@ -12,5 +12,8 @@
             "homepage": "https://github.com/FredPeal/laravel-bakahttp",
             "role": "Backend Developer"
         }
-    ]
+    ],
+    "autoload": {
+        "psr-4": {"FredPeal\\BakaHttp\\": "src/"}
+    }
 }
