@@ -101,6 +101,11 @@ trait CrudTrait
             case 'orWhere':
                 $model->orWhere($field, $operator, $value);
                 break;
+            case 'between':
+                $model->when($array, function($q, $array){
+                    return $q->whereBetween($array['field'], explode('|',$array['value']));
+                });
+                break;
             default:
                 // code...
                 break;
