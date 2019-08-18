@@ -18,5 +18,8 @@
             "Fredpeal\\BakaHttp\\": "src",
             "FredPeal\\BakaHttp\\Traits\\": "src/traits/"
         }
+    },
+    "require": {
+        "laravel/framework": "^1.0"
     }
 }

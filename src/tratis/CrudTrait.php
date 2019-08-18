@@ -1,6 +1,7 @@
 <?php
 
 namespace Fredpeal\BakaHttp\Traits;
+use Illuminate\Http\Request;
 
 trait CrudTrait
 {
@@ -30,22 +31,25 @@ trait CrudTrait
     public function search($request)
     {
         $model = $this->model::query();
-        if (key_exists('fields', $request)) {
-            foreach ($request['fields'] as $key) {
-                $fields = json_decode($key, true);
-                $this->model = $this->conditions($model, $fields);
+        if (key_exists('q', $request)) {
+            foreach ($request['q'] as $key) {
+                $q = json_decode($key, true);
+                $this->model = $this->conditions($model, $q);
             }
         }
 
-        if (array_key_exists('columns', $request)) {
-            $columns = explode(',', $request['columns']);
-            $data = $this->model->get($columns);
+        if (array_key_exists('fields', $request)) {
+            $fields = explode(',', $request['fields']);
+            $data = $this->model->get($fields);
         } else {
             $data = $this->model->get();
         }
+        
+        $rs = key_exists('rs' , $request) ? $request['rs'] : [];
+        foreach($rs as $r)
 
-        if (key_exists('eager', $request) || key_exists('rs', $request)) {
-            $rs = key_exists('eager', $request) ? $request['eager'] : $request['rs'];
+        if (key_exists('eager', $request)) {
+            $eager = $request['eager'];
             $data->load($rs);
         }
         return $data;
