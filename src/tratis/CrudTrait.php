@@ -45,13 +45,17 @@ trait CrudTrait
             $data = $this->model->get();
         }
         
-        $rs = key_exists('rs' , $request) ? $request['rs'] : [];
-        foreach($rs as $r)
-
+        
         if (key_exists('eager', $request)) {
             $eager = $request['eager'];
-            $data->load($rs);
+            $data->load($eager);
         }
+        $rs = key_exists('rs' , $request) ? $request['rs'] : [];
+        
+        foreach($rs as $r){
+            
+        }
+
         return $data;
     }
 
