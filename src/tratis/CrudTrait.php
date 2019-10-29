@@ -24,7 +24,11 @@ trait CrudTrait
     public function show(Request $request, $id)
     {
         $request = $request->toArray();
-        $data = $this->search($request);
+        $model = $this->model::find($id);
+        $data = $model->toArray();
+        foreach($request['eager'] as $eager){
+            $data[$eager] = $model->$eager;
+        }
         return response()->json($data);
     }
 
