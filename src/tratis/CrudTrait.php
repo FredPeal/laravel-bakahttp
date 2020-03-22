@@ -1,6 +1,7 @@
 <?php
 
 namespace Fredpeal\BakaHttp\Traits;
+use Illuminate\Http\Request;
 
 trait CrudTrait
 {
@@ -23,31 +24,42 @@ trait CrudTrait
     public function show(Request $request, $id)
     {
         $request = $request->toArray();
-        $data = $this->search($request);
+        $model = $this->model::find($id);
+        $data = $model->toArray();
+        foreach($request['eager'] as $eager){
+            $data[$eager] = $model->$eager;
+        }
         return response()->json($data);
     }
 
     public function search($request)
     {
         $model = $this->model::query();
-        if (key_exists('fields', $request)) {
-            foreach ($request['fields'] as $key) {
-                $fields = json_decode($key, true);
-                $this->model = $this->conditions($model, $fields);
+        if (key_exists('q', $request)) {
+            foreach ($request['q'] as $key) {
+                $q = json_decode($key, true);
+                $this->model = $this->conditions($model, $q);
             }
         }
 
-        if (array_key_exists('columns', $request)) {
-            $columns = explode(',', $request['columns']);
-            $data = $this->model->get($columns);
+        if (array_key_exists('fields', $request)) {
+            $fields = explode(',', $request['fields']);
+            $data = $this->model->get($fields);
         } else {
             $data = $this->model->get();
         }
-
-        if (key_exists('eager', $request) || key_exists('rs', $request)) {
-            $rs = key_exists('eager', $request) ? $request['eager'] : $request['rs'];
-            $data->load($rs);
+        
+        
+        if (key_exists('eager', $request)) {
+            $eager = $request['eager'];
+            $data->load($eager);
         }
+        $rs = key_exists('rs' , $request) ? $request['rs'] : [];
+        
+        foreach($rs as $r){
+            
+        }
+
         return $data;
     }
 
@@ -96,6 +108,11 @@ trait CrudTrait
                 break;
             case 'orWhere':
                 $model->orWhere($field, $operator, $value);
+                break;
+            case 'between':
+                $model->when($array, function($q, $array){
+                    return $q->whereBetween($array['field'], explode('|',$array['value']));
+                });
                 break;
             default:
                 // code...
