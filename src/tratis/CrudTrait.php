@@ -1,6 +1,7 @@
 <?php
 
 namespace Fredpeal\BakaHttp\Traits;
+
 use Illuminate\Http\Request;
 
 trait CrudTrait
@@ -18,21 +19,28 @@ trait CrudTrait
     }
 
     /**
-    * show function
-    *
-    */
+     * show function
+     *
+     */
     public function show(Request $request, $id)
     {
         $request = $request->toArray();
         $model = $this->model::find($id);
         $data = $model->toArray();
-        foreach($request['eager'] as $eager){
+        $eagerArray = key_exists('eager', $request) ? $request['eager'] : [];
+        foreach ($eagerArray as $eager) {
             $data[$eager] = $model->$eager;
         }
         return response()->json($data);
     }
 
-    public function search($request)
+    /**
+     * search function
+     *
+     * @param  mixed $request
+     * @return 
+     */
+    public function search(array $request)
     {
         $model = $this->model::query();
         if (key_exists('q', $request)) {
@@ -48,17 +56,22 @@ trait CrudTrait
         } else {
             $data = $this->model->get();
         }
-        
-        
+
         if (key_exists('eager', $request)) {
             $eager = $request['eager'];
             $data->load($eager);
         }
-        $rs = key_exists('rs' , $request) ? $request['rs'] : [];
-        
-        foreach($rs as $r){
-            
-        }
+
+        $data = $data->toArray();
+
+        /**
+         * paginate data
+         */
+        $data = collect($data);
+        $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
+        $page = key_exists('page', $request) ? $request['page'] : 1;
+
+        $data = new Paginator($data->forPage($page, $perPage), $data->count(), $perPage, $page);
 
         return $data;
     }
@@ -75,10 +88,10 @@ trait CrudTrait
     }
 
     /**
-    * update function
-    * @var $request Request
-    * $id integer
-    */
+     * update function
+     * @var $request Request
+     * $id integer
+     */
     public function update(Request $request, $id)
     {
         $data = $request->toArray();
@@ -86,18 +99,18 @@ trait CrudTrait
             unset($data['_url']);
         }
         $this->model::where('id', '=', $id)
-                    ->update($data);
+            ->update($data);
         $data = $this->model::find($id);
         return response()->json($data);
     }
 
     /**
-    * conditions function
-    * $model Model,
-    * $condition string,
-    * $field string,
-    * $value string
-    */
+     * conditions function
+     * $model Model,
+     * $condition string,
+     * $field string,
+     * $value string
+     */
     public function conditions($model, array $array)
     {
         switch ($array['condition']) {
@@ -110,8 +123,8 @@ trait CrudTrait
                 $model->orWhere($field, $operator, $value);
                 break;
             case 'between':
-                $model->when($array, function($q, $array){
-                    return $q->whereBetween($array['field'], explode('|',$array['value']));
+                $model->when($array, function ($q, $array) {
+                    return $q->whereBetween($array['field'], explode('|', $array['value']));
                 });
                 break;
             default:
