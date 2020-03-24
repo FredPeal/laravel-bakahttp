@@ -2,6 +2,7 @@
 
 namespace Fredpeal\BakaHttp\Traits;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
 trait CrudTrait
 {
