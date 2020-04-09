@@ -128,6 +128,11 @@ trait CrudTrait
                     return $q->whereBetween($array['field'], explode('|', $array['value']));
                 });
                 break;
+            case 'whereIn':
+                $model->when($array, function ($q, $array) {
+                    return $q->whereIn($array['field'], explode(',', $array['value']));
+                });
+                break;
             default:
                 // code...
                 break;
