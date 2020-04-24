@@ -39,7 +39,7 @@ trait CrudTrait
      * search function
      *
      * @param  mixed $request
-     * @return 
+     * @return
      */
     public function search(array $request)
     {
@@ -53,9 +53,9 @@ trait CrudTrait
 
         if (array_key_exists('fields', $request)) {
             $fields = explode(',', $request['fields']);
-            $data = $this->model->get($fields);
+            $data = $this->model->orderBy('id', 'desc')->get($fields);
         } else {
-            $data = $this->model->get();
+            $data = $this->model->orderBy('id', 'desc')->get($fields);
         }
 
         if (key_exists('eager', $request)) {
