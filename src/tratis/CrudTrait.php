@@ -55,7 +55,7 @@ trait CrudTrait
             $fields = explode(',', $request['fields']);
             $data = $this->model->orderBy('id', 'desc')->get($fields);
         } else {
-            $data = $this->model->orderBy('id', 'desc')->get($fields);
+            $data = $this->model->orderBy('id', 'desc')->get();
         }
 
         if (key_exists('eager', $request)) {
