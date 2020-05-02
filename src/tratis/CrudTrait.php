@@ -44,18 +44,31 @@ trait CrudTrait
     public function search(array $request)
     {
         $model = $this->model::query();
+
+        #Pagination Vars
+
+        $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
+        $page = key_exists('page', $request) ? $request['page'] : 1;
+
         if (key_exists('q', $request)) {
             foreach ($request['q'] as $key) {
                 $q = json_decode($key, true);
                 $this->model = $this->conditions($model, $q);
             }
         }
-
+        $totalResult = $this->model->count();
+        $lastPage = ceil($totalResult / intval($perPage));
         if (array_key_exists('fields', $request)) {
             $fields = explode(',', $request['fields']);
-            $data = $this->model->orderBy('id', 'desc')->get($fields);
+            $data = $this->model->orderBy('id', 'desc')
+                ->offset(intval($perPage) * $page)
+                ->limit($perPage)
+                ->get($fields);
         } else {
-            $data = $this->model->orderBy('id', 'desc')->get();
+            $data = $this->model->orderBy('id', 'desc')
+                ->offset(intval($perPage) * $page)
+                ->limit($perPage)
+                ->get();
         }
 
         if (key_exists('eager', $request)) {
@@ -69,12 +82,13 @@ trait CrudTrait
          * paginate data
          */
         $data = collect($data);
-        $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
-        $page = key_exists('page', $request) ? $request['page'] : 1;
-
-        $data = new Paginator($data->forPage($page, $perPage), $data->count(), $perPage, $page);
-
-        return $data;
+        $result = [
+            'total' => $totalResult,
+            'last_page' => $lastPage,
+            'current_page' => $page,
+            'data' => $data,
+        ];
+        return $result;
     }
 
     /**
