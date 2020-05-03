@@ -49,7 +49,7 @@ trait CrudTrait
 
         $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
         $page = key_exists('page', $request) ? $request['page'] : 1;
-
+        $offset = $page == 1 ? 0 : intval($perPage) * intval($page);
         if (key_exists('q', $request)) {
             foreach ($request['q'] as $key) {
                 $q = json_decode($key, true);
@@ -61,12 +61,12 @@ trait CrudTrait
         if (array_key_exists('fields', $request)) {
             $fields = explode(',', $request['fields']);
             $data = $this->model->orderBy('id', 'desc')
-                ->offset(intval($perPage) * $page)
+                ->offset($offset)
                 ->limit($perPage)
                 ->get($fields);
         } else {
             $data = $this->model->orderBy('id', 'desc')
-                ->offset(intval($perPage) * $page)
+                ->offset($offset)
                 ->limit($perPage)
                 ->get();
         }
