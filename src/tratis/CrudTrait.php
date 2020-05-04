@@ -113,9 +113,12 @@ trait CrudTrait
         if (array_key_exists('_url', $data)) {
             unset($data['_url']);
         }
-        $this->model::where('id', '=', $id)
-            ->update($data);
-        $data = $this->model::find($id);
+        $this->model = $this->model::find($id);
+        foreach ($data as $key => $value) {
+            $this->model->$key = $value;
+        }
+        $this->model->save();
+        $data = $this->model;
         return response()->json($data);
     }
 
