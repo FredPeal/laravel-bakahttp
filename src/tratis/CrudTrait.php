@@ -45,6 +45,10 @@ trait CrudTrait
     {
         $model = $this->model::query();
 
+        if (key_exists('eager', $request)) {
+            $model = $model->with($request['eager']);
+        }
+
         #Pagination Vars
 
         $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
@@ -69,11 +73,6 @@ trait CrudTrait
                 ->offset($offset)
                 ->limit($perPage)
                 ->get();
-        }
-
-        if (key_exists('eager', $request)) {
-            $eager = $request['eager'];
-            $data->load($eager);
         }
 
         $data = $data->toArray();
