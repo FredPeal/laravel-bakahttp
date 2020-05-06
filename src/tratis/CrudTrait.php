@@ -49,7 +49,7 @@ trait CrudTrait
 
         $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
         $page = key_exists('page', $request) ? $request['page'] : 1;
-        $offset = $page == 1 ? 0 : intval($perPage) * intval($page);
+        $offset = $page == 1 ? 0 : intval($perPage) * intval($page - 1);
         if (key_exists('q', $request)) {
             foreach ($request['q'] as $key) {
                 $q = json_decode($key, true);
