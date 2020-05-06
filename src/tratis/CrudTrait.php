@@ -45,10 +45,6 @@ trait CrudTrait
     {
         $model = $this->model::query();
 
-        if (key_exists('eager', $request)) {
-            $model = $model->with($request['eager']);
-        }
-
         #Pagination Vars
 
         $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
@@ -62,6 +58,7 @@ trait CrudTrait
         }
         $totalResult = $this->model->count();
         $lastPage = ceil($totalResult / intval($perPage));
+
         if (array_key_exists('fields', $request)) {
             $fields = explode(',', $request['fields']);
             $data = $this->model->orderBy('id', 'desc')
@@ -74,7 +71,9 @@ trait CrudTrait
                 ->limit($perPage)
                 ->get();
         }
-
+        if (key_exists('eager', $request)) {
+            $data->load($request['eager']);
+        }
         $data = $data->toArray();
 
         /**
