@@ -1,7 +1,9 @@
 <?php
 
 namespace Fredpeal\BakaHttp\Traits;
+
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator as Paginator;
 
 trait CrudTrait
 {
@@ -18,49 +20,73 @@ trait CrudTrait
     }
 
     /**
-    * show function
-    *
-    */
+     * show function
+     *
+     */
     public function show(Request $request, $id)
     {
         $request = $request->toArray();
         $model = $this->model::find($id);
         $data = $model->toArray();
-        foreach($request['eager'] as $eager){
+        $eagerArray = key_exists('eager', $request) ? $request['eager'] : [];
+        foreach ($eagerArray as $eager) {
             $data[$eager] = $model->$eager;
         }
         return response()->json($data);
     }
 
-    public function search($request)
+    /**
+     * search function
+     *
+     * @param  mixed $request
+     * @return
+     */
+    public function search(array $request)
     {
         $model = $this->model::query();
+
+        #Pagination Vars
+
+        $perPage = key_exists('perPage', $request) ? $request['perPage'] : 5;
+        $page = key_exists('page', $request) ? $request['page'] : 1;
+        $offset = $page == 1 ? 0 : intval($perPage) * intval($page - 1);
         if (key_exists('q', $request)) {
             foreach ($request['q'] as $key) {
                 $q = json_decode($key, true);
                 $this->model = $this->conditions($model, $q);
             }
         }
+        $totalResult = $this->model->count();
+        $lastPage = ceil($totalResult / intval($perPage));
 
         if (array_key_exists('fields', $request)) {
             $fields = explode(',', $request['fields']);
-            $data = $this->model->get($fields);
+            $data = $this->model->orderBy('id', 'desc')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get($fields);
         } else {
-            $data = $this->model->get();
+            $data = $this->model->orderBy('id', 'desc')
+                ->offset($offset)
+                ->limit($perPage)
+                ->get();
         }
-        
-        
         if (key_exists('eager', $request)) {
-            $eager = $request['eager'];
-            $data->load($eager);
+            $data->load($request['eager']);
         }
-        $rs = key_exists('rs' , $request) ? $request['rs'] : [];
-        
-        foreach($rs as $r){
-            
-        }
+        $data = $data->toArray();
 
-        return $data;
+        /**
+         * paginate data
+         */
+        $data = collect($data);
+        $result = [
+            'total' => $totalResult,
+            'last_page' => $lastPage,
+            'current_page' => $page,
+            'data' => $data,
+        ];
+        return $result;
     }
 
     /**
@@ -75,29 +101,32 @@ trait CrudTrait
     }
 
     /**
-    * update function
-    * @var $request Request
-    * $id integer
-    */
+     * update function
+     * @var $request Request
+     * $id integer
+     */
     public function update(Request $request, $id)
     {
         $data = $request->toArray();
         if (array_key_exists('_url', $data)) {
             unset($data['_url']);
         }
-        $this->model::where('id', '=', $id)
-                    ->update($data);
-        $data = $this->model::find($id);
+        $this->model = $this->model::find($id);
+        foreach ($data as $key => $value) {
+            $this->model->$key = $value;
+        }
+        $this->model->save();
+        $data = $this->model;
         return response()->json($data);
     }
 
     /**
-    * conditions function
-    * $model Model,
-    * $condition string,
-    * $field string,
-    * $value string
-    */
+     * conditions function
+     * $model Model,
+     * $condition string,
+     * $field string,
+     * $value string
+     */
     public function conditions($model, array $array)
     {
         switch ($array['condition']) {
@@ -110,8 +139,13 @@ trait CrudTrait
                 $model->orWhere($field, $operator, $value);
                 break;
             case 'between':
-                $model->when($array, function($q, $array){
-                    return $q->whereBetween($array['field'], explode('|',$array['value']));
+                $model->when($array, function ($q, $array) {
+                    return $q->whereBetween($array['field'], explode('|', $array['value']));
+                });
+                break;
+            case 'whereIn':
+                $model->when($array, function ($q, $array) {
+                    return $q->whereIn($array['field'], explode(',', $array['value']));
                 });
                 break;
             default:

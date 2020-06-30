@@ -16,8 +16,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Fredpeal\\BakaHttp\\": "src",
-            "FredPeal\\BakaHttp\\Traits\\": "src/traits/"
+            "Fredpeal\\BakaHttp\\": "src"
         }
     }
 }
